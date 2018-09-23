@@ -29,3 +29,11 @@ app.post('/login',function(req,res){
         res.json({success:false,data:'Bad Request'});
     }
 });
+
+app.listen(80,function(err){
+    if(err){
+        console.log('Error in starting server:',err);
+    }else{
+        console.log('Server started successfully on port 80...');
+    }
+})

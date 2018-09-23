@@ -11,11 +11,11 @@ app.use(bodyParser.urlencoded({
 
 app.use(function(req,res,next){
     var request={
-        host:req.host,
-        hostname:req.hostname,
+        ip:req.connection.remoteAddress+':'+req.connection.remotePort,
         userAgent:req.get('User-Agent')
     };
     console.log("request from :",request);
+    next();
 });
 
 app.get('/',function(req,res){

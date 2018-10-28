@@ -8,19 +8,18 @@ var colors = require('colors');
 var mongoDbUri = "mongodb://localhost/confessions";
 
 var multer = require('multer');
-var fileType = require('file-type');
 var fs = require('fs');
 
 var upload = multer({
-  dest: './uploads/'
+  dest: '/uploads/'
 });
 
-var PostTypes={
-  Confessions:'confessions',
-  Technology:'technology',
-  Politics:'politics',
-  SexAndRelationships:'sexAndRelationships',
-  HealthAndFitness:'healthAndFitness'
+var PostTypes = {
+  Confessions: 'confession',
+  Technology: 'technology',
+  Politics: 'politics',
+  SexAndRelationships: 'sex and relationships',
+  HealthAndFitness: 'health and fitness'
 };
 
 mongoose.connect(mongoDbUri, { useNewUrlParser: true }, function (err) {
@@ -51,7 +50,8 @@ var PostSchema = new mongoose.Schema({
   title: { type: String, required: true },
   time: { type: String, required: true },
   author: { type: String, required: true },
-  description: { type: String, required: true }
+  description: { type: String, required: true },
+  type: { type: String, required: true }
 });
 
 var Post = mongoose.model("post", PostSchema);
@@ -69,6 +69,8 @@ app.use(function (req, res, next) {
   console.log("request from :", request);
   next();
 });
+
+app.use(express.static(__dirname+'/uploads'));
 
 app.get('/', function (req, res) {
   res.send('<h1>Confessions server working as expected...</h1>');
@@ -148,106 +150,107 @@ app.post('/checkUsername', function (req, res) {
   });
 });
 
-app.post('/createPost',upload.single('image'), function (req, res) {
-  var tmpPath=req.file.path;
-  var targetPath=req.file.destination+req.file.filename+req.file.originalname.substr(req.file.originalname.lastIndexOf("."));
-  fs.rename(tmpPath,targetPath,function(err){
-    if(err){
-      console.log('Error in uploading file: ',err);
-      res.json({success:false,data:'Something went wrong. Please try again.'});
-    }else{
+app.post('/createPost', upload.single('image'), function (req, res) {
+  var tmpPath = req.file.path;
+  var targetPath = req.file.destination + req.file.filename + req.file.originalname.substr(req.file.originalname.lastIndexOf("."));
+  fs.rename(tmpPath, targetPath, function (err) {
+    if (err) {
+      console.log('Error in uploading file: ', err);
+      res.json({ success: false, data: 'Something went wrong. Please try again.' });
+    } else {
       console.log('File uploaded successfully');
-      var post=new Post({
-        image:targetPath,
-        title:req.body.title,
-        description:req.body.description,
-        author:req.body.author,
-        time:req.body.time
+      var post = new Post({
+        image: targetPath,
+        title: req.body.title,
+        description: req.body.description,
+        author: req.body.author,
+        time: req.body.time,
+        type: req.body.type
       });
 
-      post.save(function(err,p){
-        if(err){
-          console.log('Error in creating post: ',err);
-          res.json({success:false,data:'Something went wrong. Please try again.'});
-        }else{
-          console.log('Post created successfully with id: ',p._id);
-          res.json({success:true,data:'Post created successfully.'});
+      post.save(function (err, p) {
+        if (err) {
+          console.log('Error in creating post: ', err);
+          res.json({ success: false, data: 'Something went wrong. Please try again.' });
+        } else {
+          console.log('Post created successfully with id: ', p._id);
+          res.json({ success: true, data: 'Post created successfully.' });
         }
       });
     }
   });
 });
 
-app.get('/posts/:postType',function(req,res){
-  switch(req.params.postType){
+app.get('/posts/:postType', function (req, res) {
+  switch (req.params.postType) {
     case PostTypes.Confessions:
       console.log('Fetching confession posts...');
-      Post.find({type:PostTypes.Confessions},function(err,posts){
-        if(err){
-          console.log('Error in finding post of type ',req.params.postType,':',err);
-          res.json({success:false,data:'Something went wrong. Please try again.'});
-        }else{
-          console.log('Found posts of type: ',req.params.postType);
-          res.json({success:true,data:posts});
+      Post.find({ type: PostTypes.Confessions }, function (err, posts) {
+        if (err) {
+          console.log('Error in finding post of type ', req.params.postType, ':', err);
+          res.json({ success: false, data: 'Something went wrong. Please try again.' });
+        } else {
+          console.log('Found posts of type: ', req.params.postType);
+          res.json({ success: true, data: posts });
         }
       });
       break;
 
     case PostTypes.Technology:
       console.log('Fetching technology posts...');
-      Post.find({type:PostTypes.Technology},function(err,posts){
-        if(err){
-          console.log('Error in finding post of type ',req.params.postType,':',err);
-          res.json({success:false,data:'Something went wrong. Please try again.'});
-        }else{
-          console.log('Found posts of type: ',req.params.postType);
-          res.json({success:true,data:posts});
+      Post.find({ type: PostTypes.Technology }, function (err, posts) {
+        if (err) {
+          console.log('Error in finding post of type ', req.params.postType, ':', err);
+          res.json({ success: false, data: 'Something went wrong. Please try again.' });
+        } else {
+          console.log('Found posts of type: ', req.params.postType);
+          res.json({ success: true, data: posts });
         }
       });
       break;
 
     case PostTypes.Politics:
       console.log('Fetching politics posts...');
-      Post.find({type:PostTypes.Politics},function(err,posts){
-        if(err){
-          console.log('Error in finding post of type ',req.params.postType,':',err);
-          res.json({success:false,data:'Something went wrong. Please try again.'});
-        }else{
-          console.log('Found posts of type: ',req.params.postType);
-          res.json({success:true,data:posts});
+      Post.find({ type: PostTypes.Politics }, function (err, posts) {
+        if (err) {
+          console.log('Error in finding post of type ', req.params.postType, ':', err);
+          res.json({ success: false, data: 'Something went wrong. Please try again.' });
+        } else {
+          console.log('Found posts of type: ', req.params.postType);
+          res.json({ success: true, data: posts });
         }
       });
       break;
 
     case PostTypes.SexAndRelationships:
       console.log('Fetching Sex and Relationships posts...');
-      Post.find({type:PostTypes.SexAndRelationships},function(err,posts){
-        if(err){
-          console.log('Error in finding post of type ',req.params.postType,':',err);
-          res.json({success:false,data:'Something went wrong. Please try again.'});
-        }else{
-          console.log('Found posts of type: ',req.params.postType);
-          res.json({success:true,data:posts});
+      Post.find({ type: PostTypes.SexAndRelationships }, function (err, posts) {
+        if (err) {
+          console.log('Error in finding post of type ', req.params.postType, ':', err);
+          res.json({ success: false, data: 'Something went wrong. Please try again.' });
+        } else {
+          console.log('Found posts of type: ', req.params.postType);
+          res.json({ success: true, data: posts });
         }
       });
       break;
 
     case PostTypes.HealthAndFitness:
       console.log('Fetching Health and fitness posts...');
-      Post.find({type:PostTypes.HealthAndFitness},function(err,posts){
-        if(err){
-          console.log('Error in finding post of type ',req.params.postType,':',err);
-          res.json({success:false,data:'Something went wrong. Please try again.'});
-        }else{
-          console.log('Found posts of type: ',req.params.postType);
-          res.json({success:true,data:posts});
+      Post.find({ type: PostTypes.HealthAndFitness }, function (err, posts) {
+        if (err) {
+          console.log('Error in finding post of type ', req.params.postType, ':', err);
+          res.json({ success: false, data: 'Something went wrong. Please try again.' });
+        } else {
+          console.log('Found posts of type: ', req.params.postType);
+          res.json({ success: true, data: posts });
         }
       });
       break;
 
     default:
-      console.log('Post type not available: ',req.params.postType);
-      res.json({success:false,data:'Requested post type not found'});
+      console.log('Post type not available: ', req.params.postType);
+      res.json({ success: false, data: 'Requested post type not found' });
       break;
   }
 });

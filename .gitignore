@@ -7,7 +7,7 @@
 
 # dependencies
 /node_modules
-/uploads
+.uploads/*
 # IDEs and editors
 /.idea
 .project

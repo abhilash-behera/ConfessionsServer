@@ -11,7 +11,7 @@ var multer = require('multer');
 var fs = require('fs');
 
 var upload = multer({
-  dest: '/uploads/'
+  dest: __dirname+'/uploads/'
 });
 
 var PostTypes = {
@@ -152,7 +152,8 @@ app.post('/checkUsername', function (req, res) {
 
 app.post('/createPost', upload.single('image'), function (req, res) {
   var tmpPath = req.file.path;
-  var targetPath = req.file.destination + req.file.filename + req.file.originalname.substr(req.file.originalname.lastIndexOf("."));
+  var ext=req.file.originalname.substr(req.file.originalname.lastIndexOf("."));
+  var targetPath = req.file.destination + req.file.filename + ext;
   fs.rename(tmpPath, targetPath, function (err) {
     if (err) {
       console.log('Error in uploading file: ', err);
@@ -160,7 +161,7 @@ app.post('/createPost', upload.single('image'), function (req, res) {
     } else {
       console.log('File uploaded successfully');
       var post = new Post({
-        image: targetPath,
+        image: '/uploads/'+req.file.filename+ext,
         title: req.body.title,
         description: req.body.description,
         author: req.body.author,
@@ -253,6 +254,27 @@ app.get('/posts/:postType', function (req, res) {
       res.json({ success: false, data: 'Requested post type not found' });
       break;
   }
+});
+
+app.get('/post/:postId',function(req,res){
+  Post.findOne({_id:mongoose.Types.ObjectId(req.params.postId)},function(err,post){
+    if(err){
+      console.log('Error in finding post: ',err);
+      res.json({success:false,data:'Something went wrong. Please try again.'});
+    }else{
+      if(post){
+        res.json({success:true,data:post});
+      }else{
+        console.log('Post not found with id: ',req.params.postId);
+        res.json({success:false,data:'Post not found. Please try again.'});
+      }
+    }
+  });
+});
+
+app.get('/uploads/:imageLocation',function(req,res){
+  console.log('Requesting image: ',req.params.imageLocation);
+  res.sendFile(__dirname+'/uploads/'+req.params.imageLocation);
 });
 
 app.listen(80, function (err) {
